@@ -18,13 +18,14 @@ part1 = sum . map (p . map digitToInt . filter isDigit)
 matchNumber :: String -> [Int]
 matchNumber value = [n | (literal, n) <- numbers, isPrefixOf literal value]
   where
-     numbers = [("one", 1), ("two", 2), ("three", 3), ("four", 4), ("five", 5), ("six", 6), ("seven", 7), ("eight", 8), ("nine", 9)]
+     numbers = [ ("1", 1), ("2", 2), ("3", 3), ("4", 4), ("5", 5), ("6", 6), ("7", 7), ("8", 8), ("9", 9)
+               , ("one", 1), ("two", 2), ("three", 3), ("four", 4), ("five", 5), ("six", 6), ("seven", 7), ("eight", 8), ("nine", 9)
+               ]
 
 part2 :: Challenge -> Int
 part2 = sum . map (p . calibrationValue)
   where
         calibrationValue :: String -> [Int]
-        calibrationValue (d:rest) | isDigit d = (digitToInt d:calibrationValue rest)
         calibrationValue [] = []
         calibrationValue value = case matchNumber value of
           [number] -> (number:calibrationValue (tail value))
