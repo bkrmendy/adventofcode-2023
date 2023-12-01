@@ -1,0 +1,41 @@
+cabal-version:       2.4
+name:                adventofcode2021
+version:             0.1.0.0
+homepage:            https://github.com/githubuser/adventofcode2021#readme
+license:             ISC
+author:              Author name here
+maintainer:          example@example.com
+copyright:           2022 Author name here
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+
+library
+  hs-source-dirs:      common
+  default-language:    Haskell2010
+
+  exposed-modules:
+    Advent,
+    Utils
+  
+  build-depends:
+    base         ^>= 4.15,
+    containers   ^>= 0.6,
+    filepath,
+    parsec,
+    word8,
+    bytestring,
+    cryptohash-md5,
+    base16-bytestring,
+    benchpress
+
+common day
+  build-depends:       adventofcode2021, base
+  default-language:    Haskell2010
+
+executable day1
+  import:           day
+  main-is:          Day1.hs
+  hs-source-dirs:   challenges
+  build-depends:    containers
+
