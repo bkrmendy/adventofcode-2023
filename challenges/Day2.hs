@@ -3,6 +3,7 @@ module Main where
 import Prelude hiding (round)
 import Advent (challenge)
 import Data.List (foldl')
+import Data.Maybe (maybe)
 import qualified Text.Parsec as P
 import Utils (int, parseL)
 
@@ -33,13 +34,11 @@ type Challenge = [Game]
 parse :: String -> Challenge
 parse = parseL game
 
-nothingOrLE :: Maybe Int -> Int -> Bool
-nothingOrLE Nothing _ = True
-nothingOrLE (Just n) m = n <= m  
-
 part1 :: Challenge -> Int
 part1 = sum . (map _id) . filter (all valid . _rounds)
-  where valid (MkRound green blue red) = green `nothingOrLE` 13 && blue `nothingOrLE` 14 && red `nothingOrLE` 12
+  where
+    nothingOrLE m = maybe True (m >=) 
+    valid (MkRound green blue red) = 13 `nothingOrLE` green && 14 `nothingOrLE` blue && 12 `nothingOrLE` red
   
 nothingOrMax :: Maybe Int -> Int -> Int
 nothingOrMax Nothing m = m
