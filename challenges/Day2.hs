@@ -3,7 +3,6 @@ module Main where
 import Prelude hiding (round)
 import Advent (challenge)
 import Data.List (foldl')
-import Data.Maybe (maybe)
 import qualified Text.Parsec as P
 import Utils (int, parseL)
 
@@ -39,17 +38,14 @@ part1 = sum . (map _id) . filter (all valid . _rounds)
   where
     nothingOrLE m = maybe True (m >=) 
     valid (MkRound green blue red) = 13 `nothingOrLE` green && 14 `nothingOrLE` blue && 12 `nothingOrLE` red
-  
-nothingOrMax :: Maybe Int -> Int -> Int
-nothingOrMax Nothing m = m
-nothingOrMax (Just n) m = n `max` m
-
-power :: (Int, Int, Int) -> Int
-power (g, b, r) = g * b * r
 
 part2 :: Challenge -> Int
 part2 = sum . map (power . foldl' fewestPossible (0, 0, 0) . _rounds)
   where
+    power (g, b, r) = g * b * r
+    
+    nothingOrMax n m = maybe m (`max` m) n 
+    
     fewestPossible :: (Int, Int, Int) -> Round -> (Int, Int, Int)
     fewestPossible (g, b, r) (MkRound green blue red) = (green `nothingOrMax` g, blue `nothingOrMax` b, red `nothingOrMax` r)
     
