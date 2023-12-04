@@ -51,3 +51,9 @@ executable day3
   hs-source-dirs:   challenges
   build-depends:    containers, unordered-containers
 
+executable day4
+  import:           day
+  main-is:          Day4.hs
+  hs-source-dirs:   challenges
+  build-depends:    containers, parsec, unordered-containers
+
