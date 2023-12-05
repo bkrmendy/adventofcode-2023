@@ -42,3 +42,4 @@ wiki
 wip
 .ghc.environment.*
 tools/input.sh
+input/
