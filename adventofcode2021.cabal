@@ -49,11 +49,17 @@ executable day3
   import:           day
   main-is:          Day3.hs
   hs-source-dirs:   challenges
-  build-depends:    containers, unordered-containers
+  build-depends:    unordered-containers
 
 executable day4
   import:           day
   main-is:          Day4.hs
   hs-source-dirs:   challenges
-  build-depends:    containers, parsec, unordered-containers, array
+  build-depends:    parsec, unordered-containers, array
+
+executable day5
+  import:           day
+  main-is:          Day5.hs
+  hs-source-dirs:   challenges
+  build-depends:    unordered-containers, split
 
