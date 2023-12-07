@@ -19,14 +19,14 @@ parse = map ((\[card, bid] -> ((card, groups $ card), readInt bid)) . words) . l
 rankings :: String -> String -> [Int]
 rankings labels = map (fromJust . (`elemIndex` labels))
 
-rating1 :: [Int] -> Int
-rating1 [5] = 7
-rating1 [1, 4] = 6
-rating1 [2, 3] = 5
-rating1 [1, 1, 3] = 4
-rating1 [1, 2, 2] = 3
-rating1 [1, 1, 1, 2] = 2
-rating1 _ = 1
+rating :: [Int] -> Int
+rating [5] = 7
+rating [1, 4] = 6
+rating [2, 3] = 5
+rating [1, 1, 3] = 4
+rating [1, 2, 2] = 3
+rating [1, 1, 1, 2] = 2
+rating _ = 1
 
 ordering :: (([Int], Int), Int) -> (([Int], Int), Int) -> Ordering
 ordering ((h1, c1), _) ((h2, c2), _) = case compare c1 c2 of
@@ -36,9 +36,9 @@ ordering ((h1, c1), _) ((h2, c2), _) = case compare c1 c2 of
 result :: [(([Int], Int), Int)] -> String
 result = show . sum . map (uncurry (*)) . zip [1..] . map snd
 
-substs :: String -> [String]
-substs hand | 'J' `notElem` hand = [hand]
-substs hand = concatMap substs $ do
+substitutions :: String -> [String]
+substitutions hand | 'J' `notElem` hand = [hand]
+substitutions hand = concatMap substitutions $ do
   (i, c) <- zip [0..] hand
   guard $ c == 'J'
   alt <- "23456789TQKA"
@@ -46,11 +46,11 @@ substs hand = concatMap substs $ do
 
 rating2 :: String -> Int
 rating2 hand | count 'J' hand == 4 || count 'J' hand == 5 = 5
-rating2 hand = maximum $ map (rating1 . groups) $ substs hand
+rating2 hand = maximum $ map (rating . groups) $ substitutions hand
 
 
 part1 :: Challenge -> String
-part1 = result . sortBy ordering . map (first (bimap (rankings "23456789TJQKA") rating1))
+part1 = result . sortBy ordering . map (first (bimap (rankings "23456789TJQKA") rating))
 
 part2 :: Challenge -> String
 part2 = result . sortBy ordering . map (first (\(card, _) -> ((rankings "J23456789TQKA" card), rating2 card)))
