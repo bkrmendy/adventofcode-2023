@@ -1,3 +1,4 @@
+{-# LANGUAGE Strict #-}
 module Main where
 
 import Data.List (sort, sortBy, group, elemIndex)
@@ -11,7 +12,7 @@ type Card = (String, [Int])
 type Challenge = [(Card, Int)]
 
 groups :: String -> [Int]
-groups = sort . map length . group . sort
+groups = reverse . sort . map length . group . sort
 
 parse :: String -> Challenge
 parse = map ((\[card, bid] -> ((card, groups $ card), readInt bid)) . words) . lines
