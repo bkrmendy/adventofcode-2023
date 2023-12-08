@@ -21,27 +21,26 @@ parse :: String -> Challenge
 parse input = let [dirs, m] = splitOn "\n\n" input in (cycle dirs, parseMap m)
 
 step :: Char -> Map -> String -> String
-step dir m node = next
-  where (left, right) = m M.! node
-        next = if dir == 'L' then left else right
+step dir m node = next $ m M.! node
+  where next = if dir == 'L' then fst else snd
 
 walk :: (String -> Bool) -> String -> Map -> String -> Int -> Int
 walk stop _        _ loc stepsSoFar | stop loc = stepsSoFar
 walk stop (d:dirs) m loc stepsSoFar = walk stop dirs m (step d m loc) (stepsSoFar + 1)
 
-part1 :: Challenge -> String
-part1 (dirs, m) = show $ walk (== "ZZZ") dirs m "AAA" 0
-
-isStartNode, isEndNode :: String -> Bool
-isStartNode node = last node == 'A'
-isEndNode   node = last node == 'Z'
-
 leastCommonMultiple :: [Int] -> Int
 leastCommonMultiple = foldr lcm 1
 
+solve :: (String -> Bool) -> (String -> Bool) -> String -> Map -> Int
+solve isStartNode isEndNode dirs m = leastCommonMultiple $ do
+  startNode <- filter isStartNode (M.keys m)
+  pure $ walk isEndNode dirs m startNode 0
+
+part1 :: Challenge -> String
+part1 = show . uncurry (solve (== "AAA") (== "ZZZ"))
+
 part2 :: Challenge -> String
-part2 (dirs, m) = show $ leastCommonMultiple x
-  where x = [steps | startNode <- filter isStartNode (M.keys m), let steps = walk isEndNode dirs m startNode 0]
+part2 = show . uncurry (solve ((== 'A') . last) ((== 'Z') . last))
 
 main :: IO ()
 main = challenge "8" parse part1 part2
