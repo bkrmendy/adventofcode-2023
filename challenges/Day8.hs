@@ -37,9 +37,7 @@ isStartNode node = last node == 'A'
 isEndNode   node = last node == 'Z'
 
 leastCommonMultiple :: [Int] -> Int
-leastCommonMultiple [x] = x
-leastCommonMultiple [a, b] = lcm a b
-leastCommonMultiple (x:xs) = lcm x (leastCommonMultiple xs)
+leastCommonMultiple = foldr lcm 1
 
 part2 :: Challenge -> String
 part2 (dirs, m) = show $ leastCommonMultiple x
