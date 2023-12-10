@@ -42,7 +42,6 @@ farthest steps = distances !! (length distances `div` 2)
 part1 :: Challenge -> String
 part1 = show . farthest . loop
 
-
 enclosed :: Tiles -> Int -> Int
 enclosed tiles row = go 0 False (row, 0)
   where
@@ -59,6 +58,7 @@ part2 :: Challenge -> String
 part2 tiles = show $ sum $ map (enclosed scrubbed) rows
   where rows = nub $ map fst $ M.keys tiles
         trail = S.fromList $ loop tiles
+        -- scrub the junk to make it easier
         scrubbed = M.mapWithKey (\cell value -> if S.member cell trail then value else '.') tiles
 
 main :: IO ()
