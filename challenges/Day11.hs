@@ -64,6 +64,7 @@ bfs chart queue seen = case Seq.viewl queue of
     where nextSeen = S.insert pos seen
           neighbors = Seq.fromList [(n, dist + d) | Just (n, d) <- [down chart pos, up chart pos, left chart pos, right chart pos], not $ S.member n seen, M.member n chart]
 
+-- | TODO: this is quite slow, should be refactored later
 shortest :: Chart -> Int
 shortest chart = sum kludge `div` 2
   where
