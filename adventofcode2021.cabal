@@ -93,3 +93,9 @@ executable day10
   hs-source-dirs:   challenges
   build-depends:    unordered-containers, containers
 
+executable day11
+  import:           day
+  main-is:          Day11.hs
+  hs-source-dirs:   challenges
+  build-depends:    unordered-containers, containers
+
