@@ -15,14 +15,11 @@ parse input = (galaxies, emptyRows, emptyCols)
     emptyRows = S.fromList [r | (r, row) <- zip [0..] ls, all (== '.') row]
     emptyCols = S.fromList [c | (c, col) <- zip [0..] (transpose ls), all (== '.') col]
 
-ord :: (Int, Int) -> (Int, Int)
-ord (a, b) = if a <= b then (a, b) else (b, a) 
-
 distance :: Int -> (Int -> Bool) -> Int -> Int -> Int
 distance expansion isEmpty a b = sum $ map space [from + 1..to] 
    where
     space i = if isEmpty i then expansion else 1
-    (from, to) = ord (a, b)
+    (from, to) = if a <= b then (a, b) else (b, a)
 
 allDistances :: Int -> Challenge -> Int
 allDistances expansion (galaxies, emptyRows, emptyCols) = sum distances `div` 2
