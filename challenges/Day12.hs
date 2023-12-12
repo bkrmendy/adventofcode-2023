@@ -15,14 +15,10 @@ parse :: String -> Challenge
 parse = map parseLine . lines
   where parseLine line = let [c, g] = splitOn " " line in MkRecord c (map readInt (splitOn "," g))
 
-push :: Char -> Maybe [String] -> Maybe [String]
-push _ Nothing = Nothing
-push c (Just strings) = Just $ map (c:) strings
-
-mor :: Maybe Int -> Maybe Int -> Maybe Int
-mor Nothing a = a
-mor a Nothing = a
-mor (Just a) (Just b) = Just (a + b)
+add :: Maybe Int -> Maybe Int -> Maybe Int
+add Nothing a = a
+add a Nothing = a
+add (Just a) (Just b) = Just (a + b)
 
 type Result = Maybe Int
 type Lookup = M.HashMap (Int, [Int]) Result
@@ -57,7 +53,7 @@ consume [] [] = return $ Just 1
 consume [] _ = return $ Nothing
 consume ('.':rest) counts = consume rest counts
 consume ('#':rest) counts = consumeHashes ('#':rest) counts
-consume ('?':rest) counts = mor <$> withHash <*> withDot
+consume ('?':rest) counts = add <$> withHash <*> withDot
   where withDot  = consume ('.':rest) counts
         withHash = consume ('#':rest) counts
 
