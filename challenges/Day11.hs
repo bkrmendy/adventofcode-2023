@@ -16,7 +16,7 @@ parse input = (galaxies, emptyRows, emptyCols)
     emptyCols = S.fromList [c | (c, col) <- zip [0..] (transpose ls), all (== '.') col]
 
 distance :: Int -> (Int -> Bool) -> Int -> Int -> Int
-distance expansion isEmpty a b = sum $ map space [from + 1..to] 
+distance expansion isEmpty a b = sum $ map space [from + 1..to]
    where
     space i = if isEmpty i then expansion else 1
     (from, to) = if a <= b then (a, b) else (b, a)
@@ -32,9 +32,9 @@ allDistances expansion (galaxies, emptyRows, emptyCols) = sum distances `div` 2
       let dr = distance expansion isEmptyRow r1 r2
       let dc = distance expansion isEmptyCol c1 c2
       return $ dr + dc
-      
+
 part1 :: Challenge -> String
-part1 = show . allDistances 2 
+part1 = show . allDistances 2
 
 part2 :: Challenge -> String
 part2 = show . allDistances 1000000

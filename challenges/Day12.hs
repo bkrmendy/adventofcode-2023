@@ -37,7 +37,7 @@ withMemo f s c = do
 consumeHashesWithMemo, consumeHashes :: String -> [Int] -> S.State Lookup Result
 consumeHashesWithMemo = withMemo consumeHashes
 
--- we reached the end OK 
+-- we reached the end OK
 consumeHashes [] [0] = return $ Just 1
 
 -- too many hashes (either no groups remaining or expected fewer hashes)
@@ -81,13 +81,13 @@ consume ('?':rest) counts = add <$> withHash <*> withDot
         withHash = consume ('#':rest) counts
 
 arrangements :: Record -> Int
-arrangements (MkRecord s c) = fromJust $ S.evalState (consumeWithMemo s c) M.empty 
+arrangements (MkRecord s c) = fromJust $ S.evalState (consumeWithMemo s c) M.empty
 
 part1 :: Challenge -> String
 part1 = show . sum . map (arrangements)
 
 unfold :: Record -> Record
-unfold (MkRecord s c) = MkRecord (intercalate "?" (take 5 $ repeat s)) (concat $ take 5 $ repeat c) 
+unfold (MkRecord s c) = MkRecord (intercalate "?" (take 5 $ repeat s)) (concat $ take 5 $ repeat c)
 
 part2 :: Challenge -> String
 part2 = show . sum . map (arrangements . unfold)
