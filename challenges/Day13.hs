@@ -27,8 +27,6 @@ unsmudge p = do
   let opposite = if cell == '.' then '#' else '.' 
   pure $ replace r (replace c opposite row) p
 
-type Challenge = (Int, Int)
-
 solve :: [[String]] -> (Int, Int)
 solve patterns = (sum smudged, sum alts)
   where
@@ -36,6 +34,8 @@ solve patterns = (sum smudged, sum alts)
     desmudged = map (symmetry unsmudge) patterns
     alts = map head $ map f $ zip smudged desmudged
     f (p, ps) = filter (/= p) ps
+
+type Challenge = (Int, Int)
 
 parse :: String -> Challenge
 parse = solve . map lines . splitOn "\n\n"
