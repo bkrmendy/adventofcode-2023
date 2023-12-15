@@ -5,10 +5,8 @@ import qualified Data.HashMap.Strict as M
 import Data.List (transpose)
 import Advent (challenge)
 
-rotateLeft :: [String] -> [String]
+rotateLeft, rotateRight :: [String] -> [String]
 rotateLeft = transpose . map reverse
-
-rotateRight :: [[a]] -> [[a]]
 rotateRight = transpose . reverse
 
 type Challenge = [String]
