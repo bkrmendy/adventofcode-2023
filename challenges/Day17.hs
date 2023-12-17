@@ -3,10 +3,11 @@ module Main where
 
 import qualified Data.HashMap.Strict as M
 import qualified Data.HashSet as S
-import qualified Data.PQueue.Prio.Min as PQ
+import Algorithm.Search (dijkstra)
 import Data.Char (digitToInt)
 import Advent (challenge)
 import Utils ()
+import Data.Maybe (fromJust)
 import Debug.Trace (traceShow)
 
 type Grid = M.HashMap (Int, Int) Int
@@ -14,8 +15,8 @@ type Challenge = (Int, Int, Grid)
 
 parse :: String -> Challenge
 parse input = (length ls, length (head ls), ) $ M.fromList $ do
-  (iRow, row) <- zip [0..] ls
-  (iCol, cell) <- zip [0..] row
+  (iRow, row) <- zip [1..] ls
+  (iCol, cell) <- zip [1..] row
   pure ((iRow, iCol), digitToInt cell)
   where ls = lines input
 
@@ -25,44 +26,29 @@ turnRight (dr, dc) = (dc, -dr)
 
 type Node = (Int, (Int, Int), (Int, Int))
 
-step :: Grid -> (Int, Node) -> [(Int, Node)]
-step grid (dist, (straight, (r, c), dir)) =
-  if straight < 3
-  then next [(dir, straight + 1), (turnLeft dir, 1), (turnRight dir, 1)]
-  else next [(turnLeft dir, 1), (turnRight dir, 1)]
+step :: (Int -> Bool) -> (Int -> Bool) -> Grid -> Node -> [Node]
+step canTurn canMoveStraight grid (straight, (r, c), dir) = next (straightMoves ++ turnMoves)
   where
-      next dirs = [(dist + cell, (s, pos, (dr, dc)))
+      straightMoves = if canMoveStraight straight then [(dir, straight + 1)] else []
+      turnMoves = if canTurn straight then [(turnLeft dir, 1), (turnRight dir, 1)] else []
+      next dirs = [(s, pos, (dr, dc))
                   | ((dr, dc), s) <- dirs
                   , let pos = (r + dr, c + dc)
-                  , Just cell <- [M.lookup pos grid]
+                  , M.member pos grid
                   ]
 
-type Distances = M.HashMap (Int, Int) Int
+edge :: Grid -> Node -> Node -> Int
+edge grid _ (_, (r, c), _) = grid M.! (r, c)
 
-update :: [(Int, Node)] -> PQ.MinPQueue Int Node -> PQ.MinPQueue Int Node
-update xs queue = foldr (\(k, v) q -> PQ.insert k v q) queue xs
-
-walk
-  :: (Int, Int, Grid)
-  -> PQ.MinPQueue Int Node
-  -> S.HashSet (Int, Int)
-  -> Int
-walk (rows, cols, grid) queue seen = case PQ.minViewWithKey queue of
-  Nothing -> error "pq empty"
-  Just ((dist, (straight, (r, c), dir)), rest) ->
-      if r == rows - 1 && c == cols - 1
-      then dist
-      else walk (rows, cols, grid) (update next rest) (S.insert (r, c) seen)
-    where
-      next = filter (\(_, (_, p, _)) -> not $ S.member p seen) $ step grid (dist, (straight, (r, c), dir))
+solve :: (Int -> Bool) -> (Int -> Bool) -> Challenge -> Int
+solve canTurn canMoveStraight (rs, cs, grid)  = fst $ fromJust $ dj
+  where dj = dijkstra (step canTurn canMoveStraight grid) (edge grid) (\(s, (r, c), _) -> r == rs && c == cs && canTurn s) (0, (1, 1), (1, 0))
 
 part1 :: Challenge -> String
-part1 (rs, cs, grid) = show $ run
-  where
-    run = walk (rs, cs, grid) (PQ.fromList [(0, (0, (0, 0), (1, 0))), (0, (0, (0, 0), (0, 1)))]) S.empty
+part1 = show . solve (const True) (< 3)
 
 part2 :: Challenge -> String
-part2 = const "-"
+part2 = show . solve (>= 4) (< 10)
 
 main :: IO ()
 main = challenge "17" parse part1 part2
