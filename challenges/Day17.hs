@@ -1,14 +1,12 @@
 {-# LANGUAGE TupleSections #-}
 module Main where
 
+import qualified Data.PQueue.Prio.Min as PQ
 import qualified Data.HashMap.Strict as M
 import qualified Data.HashSet as S
-import Algorithm.Search (dijkstra)
 import Data.Char (digitToInt)
 import Advent (challenge)
-import Utils ()
 import Data.Maybe (fromJust)
-import Debug.Trace (traceShow)
 
 type Grid = M.HashMap (Int, Int) Int
 type Challenge = (Int, Int, Grid)
@@ -40,9 +38,53 @@ step canTurn canMoveStraight grid (straight, (r, c), dir) = next (straightMoves 
 edge :: Grid -> Node -> Node -> Int
 edge grid _ (_, (r, c), _) = grid M.! (r, c)
 
+dejkstra :: (Node -> [Node]) -> (Node -> Node -> Int) -> (Node -> Bool) -> [Node] -> Maybe Int
+dejkstra stepFn costFn isDone startNodes = search (PQ.fromList $ zip [0..] startNodes) S.empty (M.fromList $ zip startNodes [0..])
+  where
+    search queue seen score = case PQ.minViewWithKey queue of
+      Nothing -> Nothing
+      Just ((cost, node), rest) ->
+        if isDone node then Just cost
+        else if S.member node seen then search rest seen score
+        else search rest' seen' score'
+          where
+            seen' = S.insert node seen
+            ok c n = not (S.member n seen') && (not (M.member n score) || c < (fromJust . M.lookup n $ score))
+            neighbors = [(c, n) | n <- stepFn node
+                                , let c = costFn node n
+                                , ok cost n
+                                ]
+            rest' = foldr (\(c, n) q -> PQ.insert c n q) rest neighbors
+            score' = foldr (\(c, n) s -> M.insert n c s) score neighbors
+
+astarSearch :: (Node -> [Node]) -> (Node -> Node -> Int) -> (Node -> Bool) -> Node -> Maybe Int
+astarSearch nextNodeFn costFn isGoalNode startNode =
+  astar (PQ.singleton 0 startNode) S.empty (M.singleton startNode 0)
+  where
+    astar pq seen gscore = case PQ.minViewWithKey pq of
+      Nothing -> Nothing
+      Just ((cost, node), rest) ->
+        if isGoalNode node then Just cost
+        else if S.member node seen then astar rest seen gscore
+        else astar pq'' seen' gscore'
+          where
+            seen'         = S.insert node seen
+            ok c n = no
+            successors    =
+              filter (\(s, g) -> not (S.member s seen') &&
+                        (not (s `M.member` gscore) || g < (fromJust . M.lookup s $ gscore)))
+              $ [(node, c) | n <- nextNodeFn node, let c = costFn node n, not (S.member node seen')]
+            pq''    = foldl (\q (s, g) -> PQ.insert g s q) rest successors
+            gscore' = foldl (\m (s, g) -> M.insert s g m) gscore successors
+    successorsAndCosts node gcost = map (\s -> (s, gcost + costFn node s)) . nextNodeFn $ node
+
 solve :: (Int -> Bool) -> (Int -> Bool) -> Challenge -> Int
-solve canTurn canMoveStraight (rs, cs, grid)  = fst $ fromJust $ dj
-  where dj = dijkstra (step canTurn canMoveStraight grid) (edge grid) (\(s, (r, c), _) -> r == rs && c == cs && canTurn s) (0, (1, 1), (1, 0))
+solve canTurn canMoveStraight (rs, cs, grid)  = fromJust $ dj
+  where
+    stepFn = (step canTurn canMoveStraight grid)
+    edgeFn = (edge grid)
+    doneFn = (\(s, (r, c), _) -> r == rs && c == cs && canTurn s)
+    dj = astarSearch stepFn edgeFn doneFn (0, (1, 1), (1, 0))
 
 part1 :: Challenge -> String
 part1 = show . solve (const True) (< 3)
