@@ -138,5 +138,5 @@ executable day18
   import:           day
   main-is:          Day18.hs
   hs-source-dirs:   challenges
-  build-depends:    unordered-containers, containers
+  build-depends:    containers
 
