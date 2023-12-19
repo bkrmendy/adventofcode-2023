@@ -140,3 +140,9 @@ executable day18
   hs-source-dirs:   challenges
   build-depends:    containers
 
+executable day19
+  import:           day
+  main-is:          Day19.hs
+  hs-source-dirs:   challenges
+  build-depends:    unordered-containers, parsec, split, mtl
+
