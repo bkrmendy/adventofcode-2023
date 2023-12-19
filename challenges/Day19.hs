@@ -2,11 +2,9 @@ module Main where
 
 import qualified Data.HashMap.Strict as M
 import Text.Parsec hiding (parse)
-import Data.List (foldl')
 import Data.List.Split (splitOn)
 import Advent (challenge)
 import Utils (int, parseL)
-import Debug.Trace (traceShow)
 
 data Destination = Accepted | Rejected | Rule String deriving (Show, Eq)
 data Test = Constant Destination | Check Char Char Int Destination deriving Show
@@ -42,9 +40,9 @@ pRule = do
   _ <- char '}'
   return (name, tests)
 
-data Part = MkPart { _x :: Int, _m :: Int, _a :: Int, _s :: Int } deriving Show
+data Part a = MkPart { _x :: a, _m :: a, _a :: a, _s :: a } deriving Show
 
-pPart :: Parsec String () Part
+pPart :: Parsec String () (Part Int)
 pPart = do
   _ <- string "{x="
   x <- int
@@ -58,43 +56,25 @@ pPart = do
   return $ MkPart x m a s
 
 
-type Challenge = (Rules, [Part])
+type Challenge = (Rules, [Part Int])
 
---dest :: Test -> Destination
---dest (Constant d) = d
---dest (Check _ _ _ d) = d
---
---same :: [Test] -> Maybe [Test]
---same (t:t2:rest) = if all (\c -> dest c == dest t) (t2:rest) then Just [Constant (dest t)] else Nothing
---same [_] = Nothing
---
---constant :: Rules -> [Test] -> Maybe [Test]
---constant rules (:rest) 
-
-
---samesIter :: Rules -> Rules
---samesIter rules = traceShow (length next, M.size rules) $ if null next then rules else samesIter updated
---  where next = [(name, common) | (name, tests) <- M.toList rules
---                                        , Just common <- [same tests]]
---        updated = foldl' (\r (n, t) -> M.insert n t r) rules next
-        
 parse :: String -> Challenge
 parse input = (rules, parts)
   where [rulesRaw, partsRaw] = splitOn "\n\n" input
         rules = M.fromList $ parseL pRule rulesRaw
         parts = parseL pPart partsRaw
 
-get :: Char -> Part -> Int
+get :: Char -> Part a -> a
 get 'x' (MkPart x _ _ _) = x
 get 'm' (MkPart _ m _ _) = m
 get 'a' (MkPart _ _ a _) = a
 get 's' (MkPart _ _ _ s) = s
 
-check :: Char -> Char -> Int -> Part -> Bool
+check :: Char -> Char -> Int -> Part Int -> Bool
 check prop '<' val part = get prop part < val
 check prop '>' val part = get prop part > val
 
-evaluate :: Rules -> Part -> Bool
+evaluate :: Rules -> Part Int -> Bool
 evaluate rules part = go (rules M.! "in")
   where
         step Accepted = True
@@ -105,15 +85,42 @@ evaluate rules part = go (rules M.! "in")
           | check prop test val part = step dst
           | otherwise = go rest
 
-rating :: Part -> Int
+rating :: Part Int -> Int
 rating (MkPart x m a s) = x + m + a + s
 
 part1 :: Challenge -> String
 part1 (rules, parts) = show $ sum $ map rating $ filter (evaluate rules) parts
 
+split :: (Int, Int) -> Char -> Int -> ((Int, Int), (Int, Int))
+split (lo, hi) '<' val = ((lo, val), (val, hi))
+split (lo, hi) '>' val = ((val + 1, hi), (lo, val + 1))
+
+type PPart = Part (Int, Int)
+
+splitPart :: PPart -> Char -> Char -> Int -> (PPart, PPart)
+splitPart (MkPart x m a s) prop op val = case prop of
+  'x' -> let (use, rest) = split x op val in (MkPart use m a s, MkPart rest m a s)
+  'm' -> let (use, rest) = split m op val in (MkPart x use a s, MkPart x rest a s)
+  'a' -> let (use, rest) = split a op val in (MkPart x m use s, MkPart x m rest s)
+  's' -> let (use, rest) = split s op val in (MkPart x m a use, MkPart x m a rest)
+
+cardinality :: PPart -> Int
+cardinality (MkPart x m a s) = product $ map (\(l, h) -> h - l) [x, m, a, s]
+
+rangesFor :: Rules -> PPart -> [Test] -> Int
+rangesFor _     _      [(Constant Rejected)] = 0
+rangesFor _     part   [(Constant Accepted)] = cardinality part
+rangesFor rules part   [(Constant (Rule rule))] = rangesFor rules part (rules M.! rule)
+rangesFor rules part  ((Check p t v dst):rest) =
+  let (use, cont) = splitPart part p t v in
+  case dst of
+    Rejected -> rangesFor rules cont rest
+    Accepted -> (cardinality use) + rangesFor rules cont rest
+    Rule rule -> rangesFor rules use (rules M.! rule) + rangesFor rules cont rest
+
 part2 :: Challenge -> String
-part2 (rules, _) = show $ sum $ map rating $ filter (evaluate rules) parts
-  where parts = [MkPart x m a s | x <- [1..4000], m <- [1..4000], a <- [1..4000], s <- [1..4000]]
+part2 (rules, _) = show $ parts
+  where parts = rangesFor rules (MkPart (1, 4001) (1, 4001) (1, 4001) (1, 4001)) (rules M.! "in")
 
 main :: IO ()
 main = challenge "19" parse part1 part2
