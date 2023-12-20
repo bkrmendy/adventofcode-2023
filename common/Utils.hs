@@ -85,6 +85,11 @@ select :: [a] -> [(a,[a])]
 select []     = []
 select (x:xs) = (x,xs) : [(y,x:ys) | (y,ys) <- select xs]
 
+takeUntil :: (a -> Bool) -> [a] -> [a]
+takeUntil f (x:xs)
+    | not (f x) = x : (takeUntil f xs)
+    | otherwise = []
+
 -- | SET
 listify :: (Ord a) => (a -> Set.Set a -> Set.Set a) -> [a] -> Set.Set a -> Set.Set a
 listify _ [] set = set
