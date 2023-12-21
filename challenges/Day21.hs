@@ -5,7 +5,6 @@ import qualified Data.HashMap.Strict as M
 import qualified Data.HashSet as S
 import Advent (challenge)
 import Utils ()
-import Debug.Trace (traceShow)
 
 type Grid = (Int, Int, M.HashMap (Int, Int) Char)
 type Roots = S.HashSet (Int, Int)
@@ -13,7 +12,7 @@ type Challenge = Grid
 
 parse :: String -> Challenge
 parse input = (rows, cols, grid)
-  where 
+  where
     ls = lines input
     (rows, cols) = (length ls, length (head ls))
     grid = M.fromList $ do
@@ -24,25 +23,43 @@ parse input = (rows, cols, grid)
 step :: Grid -> Roots -> Roots
 step (rs, cs, grid) roots = S.fromList
                             [ nextPos | (r, c) <- S.toList roots
-                            , nextPos <- [cc (r + 1, c), cc (r - 1, c), cc (r, c + 1), cc (r, c - 1)]
-                            , Just cell <- [M.lookup nextPos grid]
-                            , cell == '.' || cell == 'S'
+                            , nextPos <- [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]
+                            , let cell = grid M.! cc nextPos
+                            , cell /= '#'
                             ]
   where
-    cc (r, c) = (r `rem` rs, c `rem` cs)
+    cc (r, c) = (r `mod` rs, c `mod` cs)
 
 go :: Int -> Grid -> Roots -> Roots
 go 0 _ roots = roots
-go n grid roots = traceShow n $ go (n - 1) grid (step grid roots)
+go n grid roots = go (n - 1) grid (step grid roots)
 
 start :: Grid -> (Int, Int)
-start (_, _, g) = fst . head . filter (\(k, v) -> v == 'S') . M.toList $ g
+start (_, _, g) = head [s | (s, 'S') <- M.toList g]
+
+reach :: Int -> Grid -> Int
+reach steps grid = S.size $ go steps grid (S.singleton (start grid))
 
 part1 :: Challenge -> String
-part1 grid = show . S.size $ go 64 grid (S.singleton (start grid))
+part1 = show . reach 64
 
 part2 :: Challenge -> String
-part2 grid = show . S.size $ go 26501365 grid (S.singleton (start grid))
-
+part2 grid = show $ f (steps `quot` cs)
+  where steps = 26501365
+        (_, cs, _) = grid
+        remainder = steps `mod` cs
+        -- | TIL
+        t0 = reach remainder grid
+        t1 = reach (remainder + cs) grid
+        t2 = reach (remainder + cs + cs) grid
+        
+        -- | TIL even more
+        d01 = t1 - t0
+        d12 = t2 - t1
+        d01_12 = d12 - d01
+        
+        -- | MAX TIL
+        f x = t0 + (t1-t0) * x + x * (x-1) `quot` 2 * d01_12
+        
 main :: IO ()
 main = challenge "21" parse part1 part2
