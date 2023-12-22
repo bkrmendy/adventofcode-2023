@@ -287,3 +287,17 @@ shortestPathsFrom neighbors queue seen = case Seq.viewl queue of
   (x Seq.:< rest) -> if Set.member (Prelude.snd x) seen
     then shortestPathsFrom neighbors rest seen
     else x:shortestPathsFrom neighbors (rest Seq.>< Seq.fromList (neighbors x)) (Set.insert (Prelude.snd x) seen)
+    
+-- | QUEUE
+newtype FIFO a = MkFIFO (Seq.Seq a)
+
+singletonFifo :: a -> FIFO a
+singletonFifo x = MkFIFO $ Seq.singleton x
+
+pull :: FIFO a -> Maybe (a, FIFO a)
+pull (MkFIFO q) = case Seq.viewl q of
+  Seq.EmptyL -> Nothing
+  (a Seq.:< rest) -> Just (a, (MkFIFO rest))
+
+pushMany :: [a] -> FIFO a -> FIFO a
+pushMany as (MkFIFO q) = MkFIFO $ q Seq.>< (Seq.fromList as)
