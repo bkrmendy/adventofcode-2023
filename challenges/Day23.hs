@@ -30,18 +30,18 @@ step grid (r, c) = case grid M.! (r, c) of
   '<' -> [(r, c - 1)]
   '^' -> [(r - 1, c)]
 
-type End = Int -> Bool
+type End = (Int, Int) -> Bool
 end :: Grid -> End
 end grid = f
   where lastRow = maximum $ map fst (M.keys grid)
-        f r = r == lastRow
+        f (r, _) = r == lastRow
 
 smallGraphNodes :: End -> Grid -> (Int, Int) -> [((Int, Int), (Int, Int), Int)]
 smallGraphNodes finished grid s = go s s 0 S.empty
   where
     go :: (Int, Int) -> (Int, Int) -> Int -> S.HashSet (Int, Int) -> [((Int, Int), (Int, Int), Int)]
     go begin coord dist seen
-      | finished (fst coord) = [(begin, coord, dist)]
+      | finished coord = [(begin, coord, dist)]
       | null next = []
       | length next == 1 = go begin (head next) (dist + 1) (S.insert coord seen)
       | otherwise = (begin, coord, dist):concatMap (\n -> go coord n 1 (S.insert coord seen)) next
@@ -50,11 +50,11 @@ smallGraphNodes finished grid s = go s s 0 S.empty
 type Graph = M.HashMap (Int, Int) (S.HashSet ((Int, Int), Int))
 
 walkSmallGraph :: End -> Graph -> (Int, Int) -> [Int]
-walkSmallGraph finished graph begin = go begin S.empty 0 
+walkSmallGraph finished graph begin = go begin S.empty 0
   where
       go :: (Int, Int) -> S.HashSet (Int, Int) -> Int -> [Int]
       go coord seen dist
-        | finished (fst coord) = [dist]
+        | finished coord = [dist]
         | null next = []
         | otherwise = concatMap (\(c, d) -> go c (S.insert coord seen) d) next
         where next = [(c, d + dist) | (c, d) <- S.toList $ graph M.! coord, not (S.member c seen)]
@@ -78,10 +78,10 @@ undirected :: Graph -> Graph
 undirected original = M.fromListWith S.union $ do
   (from, edges) <- M.toList original
   (to, dst) <- S.toList edges
-  return (to, S.singleton (from, dst))
+  [(from, S.singleton (to, dst)), (to, S.singleton (from, dst))]
 
 part2 :: Challenge -> String
-part2 = show . solve undirected 
+part2 = show . solve undirected
 
 main :: IO ()
 main = visual "23" parse part1 part2
