@@ -164,3 +164,9 @@ executable day22
   hs-source-dirs:   challenges
   build-depends:    unordered-containers, split
 
+executable day23
+  import:           day
+  main-is:          Day23.hs
+  hs-source-dirs:   challenges
+  build-depends:    unordered-containers
+
