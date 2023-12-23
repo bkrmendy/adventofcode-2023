@@ -2,8 +2,6 @@ module Main where
 
 import qualified Data.HashMap.Strict as M
 import qualified Data.HashSet as S
-import Data.List (nub)
-import Debug.Trace (traceShow)
 
 import Advent (visual)
 
@@ -18,8 +16,8 @@ parse input = M.fromList $ do
 
 type Step = Grid -> (Int, Int) -> [(Int, Int)]
 
-stepPt1 :: Step
-stepPt1 grid (r, c) = case grid M.! (r, c) of
+step :: Step
+step grid (r, c) = case grid M.! (r, c) of
   '.' -> [ (r', c')
          | (r', c') <- [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]
          , Just cell <- [M.lookup (r', c') grid]
@@ -32,24 +30,14 @@ stepPt1 grid (r, c) = case grid M.! (r, c) of
   '<' -> [(r, c - 1)]
   '^' -> [(r - 1, c)]
 
---walkkk :: End -> Step -> Grid -> (Int, Int) -> [Int]
---walkkk finished step grid s = go s 0 S.empty
---  where
---    go :: (Int, Int) -> Int -> S.HashSet (Int, Int) -> [Int]
---    go coord dist seen
---      | finished (fst coord) = [dist]
---      | null next = []
---      | otherwise = concatMap (\n -> go n (dist + 1) (S.insert coord seen)) next
---      where next = [c | c <- step grid coord, not (S.member c seen)]
-
 type End = Int -> Bool
 end :: Grid -> End
 end grid = f
   where lastRow = maximum $ map fst (M.keys grid)
         f r = r == lastRow
 
-smallGraphNodes :: End -> Step -> Grid -> (Int, Int) -> [((Int, Int), (Int, Int), Int)]
-smallGraphNodes finished step grid s = go s s 0 S.empty
+smallGraphNodes :: End -> Grid -> (Int, Int) -> [((Int, Int), (Int, Int), Int)]
+smallGraphNodes finished grid s = go s s 0 S.empty
   where
     go :: (Int, Int) -> (Int, Int) -> Int -> S.HashSet (Int, Int) -> [((Int, Int), (Int, Int), Int)]
     go begin coord dist seen
@@ -74,14 +62,17 @@ walkSmallGraph finished graph begin = go begin S.empty 0
 start :: Grid -> (Int, Int)
 start grid = head $ [(0, c) | ((0, c), '.') <- M.toList grid]
 
-part1 :: Challenge -> String
-part1 grid = show $ maximum $ walkSmallGraph finished graph begin
+solve :: (Graph -> Graph) -> Grid -> Int
+solve transform grid = maximum $ walkSmallGraph finished graph begin
   where
-    finished = end grid
-    begin = start grid
-    graph = M.fromListWith S.union $ do
-      (from, to, dist) <- smallGraphNodes finished stepPt1 grid begin
-      return (from, S.singleton (to, dist))
+   finished = end grid
+   begin = start grid
+   graph = transform $ M.fromListWith S.union $ do
+     (from, to, dist) <- smallGraphNodes finished grid begin
+     return (from, S.singleton (to, dist))
+
+part1 :: Challenge -> String
+part1 = show . solve id
 
 undirected :: Graph -> Graph
 undirected original = M.fromListWith S.union $ do
@@ -90,13 +81,7 @@ undirected original = M.fromListWith S.union $ do
   return (to, S.singleton (from, dst))
 
 part2 :: Challenge -> String
-part2 grid = show $ maximum $ walkSmallGraph finished graph begin
-  where
-    finished = end grid
-    begin = start grid
-    graph = M.fromListWith S.union $ do
-      (from, to, dist) <- smallGraphNodes finished stepPt1 grid begin
-      [(from, S.singleton (to, dist)), (to, S.singleton (from, dist))]
+part2 = show . solve undirected 
 
 main :: IO ()
 main = visual "23" parse part1 part2
