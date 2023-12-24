@@ -24,6 +24,12 @@ challenge day parse part1 part2 = do
     print $ part1 structured
     print $ part2 structured
 
+challengeIO :: String -> (String -> input) -> (input -> IO ()) -> IO ()
+challengeIO day parse go = do
+  inputText <- readInput day
+  let structured = parse inputText
+  go structured
+
 bench
   :: (Show output)
   => String

@@ -174,5 +174,5 @@ executable day24
   import:           day
   main-is:          Day24.hs
   hs-source-dirs:   challenges
-  build-depends:    unordered-containers, split
+  build-depends:    unordered-containers, split, sbv
 

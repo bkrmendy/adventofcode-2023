@@ -2,10 +2,14 @@ module Main where
 
 import Data.List.Split (splitOn)
 import Data.Ratio
+import Data.Maybe (fromJust)
 import Data.Bifunctor (bimap)
 import Data.List (tails)
 
-import Advent (challenge)
+import Data.SBV
+import Data.SBV.Internals
+
+import Advent (challengeIO)
 import Utils (readInt)
 
 type HailStone = ((Integer, Integer, Integer), (Integer, Integer, Integer))
@@ -52,11 +56,33 @@ intersections stones = [ i
 inTestArea :: Integer -> Integer -> (Integer, Integer) -> Bool
 inTestArea lo hi (x, y) = lo <= x && x <= hi && lo <= y && y <= hi
 
-part1 :: Challenge -> String
-part1 = show . length . filter (inTestArea 200000000000000 400000000000000) . intersections
+part1 :: Challenge -> Int
+part1 = length . filter (inTestArea 200000000000000 400000000000000) . intersections
 
-part2 :: Challenge -> String
-part2 = const "see day24.py (I'll have to figure out how to use z3 with haskell sometime)"
+tupleToList :: (Integer, Integer, Integer) -> [Integer]
+tupleToList (a, b, c) = [a, b, c]
+
+findIntersectionRay :: [HailStone] -> Symbolic ()
+findIntersectionRay hailstones = do
+    positions <- sIntegers ["px", "py", "pz"]
+    velocities <- sIntegers ["vx", "vx", "vz"]
+    intersectionTimes <- mapM (\_ -> sInteger "t") hailstones
+
+    mapM_ (\t -> constrain $ t .>= 0) intersectionTimes
+
+    sequence_ [ constrain $ positions !! j + velocities !! j * t .== literal (p !! j) + literal (v !! j) * t
+              | ((p, v), t) <- zip (map (bimap tupleToList tupleToList) hailstones) intersectionTimes
+              , j <- [0..2]
+              ]
 
 main :: IO ()
-main = challenge "24" parse part1 part2
+main = challengeIO "24" parse $ \hs -> do
+  print (part1 hs)
+  result <- sat $ findIntersectionRay (take 3 hs)
+  case result of 
+    SatResult (Satisfiable _ model) -> do
+      -- surely there's a better way
+      print $ sum $ map (get . snd) $ take 3 $ modelAssocs model
+  where
+    get :: CV -> Integer
+    get cv = fromCV cv 
