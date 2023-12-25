@@ -1,7 +1,7 @@
 module Main where
 
 import qualified Data.HashSet as S
-
+import Data.List (tails)
 import Advent (challenge)
 import Utils (transpose)
 
@@ -22,13 +22,14 @@ distance expansion isEmpty a b = sum $ map space [from + 1..to]
     (from, to) = if a <= b then (a, b) else (b, a)
 
 allDistances :: Int -> Challenge -> Int
-allDistances expansion (galaxies, emptyRows, emptyCols) = sum distances `div` 2
+allDistances expansion (galaxies, emptyRows, emptyCols) = sum distances
   where
     isEmptyRow = flip (S.member) emptyRows
     isEmptyCol = flip (S.member) emptyCols
     distances = do
-      (r1, c1) <- S.toList galaxies
-      (r2, c2) <- S.toList galaxies
+      let galaxiesList = S.toList galaxies
+      ((r1, c1), otherGalaxies) <- zip galaxiesList (tails (tail galaxiesList))
+      (r2, c2) <- otherGalaxies
       let dr = distance expansion isEmptyRow r1 r2
       let dc = distance expansion isEmptyCol c1 c2
       return $ dr + dc
