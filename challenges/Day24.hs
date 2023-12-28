@@ -2,7 +2,6 @@ module Main where
 
 import Data.List.Split (splitOn)
 import Data.Ratio
-import Data.Maybe (fromJust)
 import Data.Bifunctor (bimap)
 import Data.List (tails)
 

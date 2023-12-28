@@ -6,7 +6,7 @@ import qualified Data.HashMap.Strict as M
 import qualified Data.HashSet as S
 import Data.Char (digitToInt)
 import Advent (challenge)
-import Data.Maybe (maybe, fromJust)
+import Data.Maybe (fromJust)
 
 type Grid = M.HashMap (Int, Int) Int
 type Challenge = (Int, Int, Grid)
@@ -29,7 +29,7 @@ step canTurn canMoveStraight grid (straight, (r, c), dir) = next (straightMoves 
   where
       straightMoves = if canMoveStraight straight then [(dir, straight + 1)] else []
       turnMoves = if canTurn straight then [(turnLeft dir, 1), (turnRight dir, 1)] else []
-      next dirs = [(s, pos, (dr, dc))
+      next dirs = [ (s, pos, (dr, dc))
                   | ((dr, dc), s) <- dirs
                   , let pos = (r + dr, c + dc)
                   , M.member pos grid
