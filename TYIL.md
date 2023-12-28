@@ -45,3 +45,9 @@ Looking at the input is as important as looking at the problem description
 
 ### Day 22
 Lack of sleep makes you dumber
+
+### Day 24
+z3 + SBV (to a degree)
+
+### Day 25
+put it in graphviz

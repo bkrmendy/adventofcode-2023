@@ -31,7 +31,6 @@ connectedGroup components queue seen = case pull queue of
 part1 :: Challenge -> String
 part1 graph = show $ size "ddj" * size "rnx" 
   where
---    pruned = (removeEdge "ddj" "rnx" . removeEdge "lxb" "vcq" . removeEdge "mmr" "znk") $ graph
     pruned = (removeEdge "ddj" "rnx" . removeEdge "lxb" "vcq" . removeEdge "mmr" "znk") $ graph
     size s = S.size (connectedGroup pruned (singletonFifo s) S.empty)
 
