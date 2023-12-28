@@ -31,10 +31,10 @@ because the ends of the lists the "shared sub-problems".
 TODO: recreate the original implementation
 
 ### Day 17
-Implemented Dijsktra search from scratch, better late than never
+Implemented Dijkstra search from scratch, better late than never
 
 ### Day 18
-TODO: shoelace + picks'
+TODO: shoelace + pick's
 
 ### Day 20
 Looking at the input is as important as looking at the problem description
